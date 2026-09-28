@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>台灣天氣地圖</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <!-- 自己的 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+    <!-- =====================================
+         Header
+    ====================================== -->
+
+    <header class="top-bar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ☁️
+            </div>
+
+            <div>
+
+                <h1>
+                    台灣天氣地圖
+                </h1>
+
+                <p>
+                    Taiwan Weather Map
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="header-actions">
+
+            <span id="last-update" class="last-update">
+                尚未更新
+            </span>
+
+            <button id="refresh-btn" class="refresh-btn">
+                <span id="refresh-icon">
+                    ↻
+                </span>
+
+                更新資料
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================
+         Main
+    ====================================== -->
+
+    <main class="main-container">
+
+        <section class="map-wrapper">
+
+            <div id="map" class="map"></div>
+
+            <!-- 全台天氣概覽 -->
+            <div id="weekly-overview" class="weekly-overview">
+
+                <div class="overview-header">
+                    <div>
+                        <h2>全台天氣概覽</h2>
+                        <p>明天起未來 7 天天氣</p>
+                    </div>
+
+                    <button id="overview-toggle" class="overview-toggle" type="button">
+                        −
+                    </button>
+                </div>
+
+
+                <div id="overview-content" class="overview-content">
+
+                    <!-- 縣市選擇 -->
+                    <div class="overview-field">
+
+                        <label for="overview-location">
+                            選擇縣市
+                        </label>
+
+                        <select id="overview-location" class="overview-select">
+                            <option value="">
+                                請選擇縣市
+                            </option>
+                        </select>
+
+                    </div>
+
+
+                    <!-- 目前天氣摘要 -->
+                    <div id="overview-summary" class="overview-summary">
+
+                        <div class="overview-weather-icon">
+                            🌤️
+                        </div>
+
+                        <div class="overview-summary-info">
+
+                            <div id="overview-location-name" class="overview-location-name">
+                                —
+                            </div>
+
+                            <div id="overview-weather" class="overview-weather">
+                                —
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- 溫度 -->
+                    <div class="overview-temperature">
+
+                        <div class="temperature-item">
+
+                            <span class="temperature-label">
+                                最高
+                            </span>
+
+                            <strong id="overview-max-temp">
+                                —
+                            </strong>
+
+                            <span>°C</span>
+
+                        </div>
+
+
+                        <div class="temperature-item">
+
+                            <span class="temperature-label">
+                                最低
+                            </span>
+
+                            <strong id="overview-min-temp">
+                                —
+                            </strong>
+
+                            <span>°C</span>
+
+                        </div>
+
+                        <div class="temperature-item">
+                            <span class="temperature-label">
+                                降雨機率
+                            </span>
+
+                            <strong id="overview-pop">
+                                —
+                            </strong>
+
+                            <span>%</span>
+                        </div>
+
+                    </div>
+
+
+                    <!-- 7 天圖表預留 -->
+                    <div class="overview-chart-wrapper">
+
+                        <canvas id="weekly-temperature-chart"></canvas>
+
+                    </div>
+
+                    <div id="weekly-forecast-list" class="weekly-forecast-list"></div>
+
+                </div>
+
+            </div>
+
+            <!-- Loading -->
+
+            <div id="loading" class="loading-overlay hidden">
+
+                <div class="loading-card">
+
+                    <div class="spinner"></div>
+
+                    <p>
+                        正在更新天氣資料...
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Message -->
+
+            <div id="message" class="message hidden">
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             Weather Detail
+        ================================== -->
+
+        <aside id="weather-panel" class="weather-panel">
+
+            <!-- 尚未選擇 -->
+            <div id="panel-empty" class="panel-empty">
+
+                <div class="panel-icon">
+                    🌤️
+                </div>
+
+                <h2>
+                    選擇縣市
+                </h2>
+
+                <p>
+                    點擊地圖上的縣市或鄉鎮標記，
+                    查看詳細天氣資訊。
+                </p>
+
+            </div>
+
+
+            <!-- 天氣詳細資訊 -->
+            <div id="panel-content" class="panel-content hidden">
+
+                <!-- 標題 -->
+                <div class="panel-header">
+
+                    <div>
+
+                        <p id="panel-region" class="panel-region">
+                            —
+                        </p>
+
+                        <h2 id="panel-location-name">
+                            —
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <!-- 目前天氣 -->
+                <div class="panel-current-weather">
+
+                    <div id="panel-weather-icon" class="panel-weather-icon">
+                        🌤️
+                    </div>
+
+                    <div class="panel-current-info">
+
+                        <div id="panel-weather" class="panel-weather">
+                            —
+                        </div>
+
+                        <div class="panel-temperature">
+
+                            <span id="panel-max-temp">
+                                —
+                            </span>
+
+                            <span>°</span>
+
+                        </div>
+
+                        <div class="panel-temperature-range">
+
+                            <span>
+                                最低
+                            </span>
+
+                            <strong id="panel-min-temp">
+                                —
+                            </strong>
+
+                            <span>
+                                °C
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- 天氣摘要 -->
+                <div class="panel-summary">
+
+                    <div class="panel-summary-item">
+
+                        <span>
+                            🌧️ 降雨機率
+                        </span>
+
+                        <strong id="panel-pop">
+                            —
+                        </strong>
+
+                        <span>%</span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- 未來預報 -->
+                <div class="panel-section">
+
+                    <h3>
+                        未來天氣
+                    </h3>
+
+                    <div id="panel-forecast-list" class="panel-forecast-list">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </main>
+
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+
+
+</body>
+
+</html>
