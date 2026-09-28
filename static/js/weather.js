@@ -1652,80 +1652,6 @@ function showWeatherPanel(location, cityWeather) {
 
 
     // -----------------------------
-    // 未來預報
-    // -----------------------------
-
-    let forecastHTML = "";
-
-
-    cityWeather.forEach(
-        (item, index) => {
-
-            const itemIcon =
-                getWeatherIcon(
-                    item.weather
-                );
-
-
-            const itemMin =
-                item.min_temp !== null
-                    ? `${item.min_temp}°`
-                    : "--";
-
-
-            const itemMax =
-                item.max_temp !== null
-                    ? `${item.max_temp}°`
-                    : "--";
-
-
-            const itemPop =
-                item.pop !== null
-                    ? `${item.pop}%`
-                    : "--";
-
-
-            forecastHTML += `
-                <div class="forecast-item">
-
-                    <div class="forecast-icon">
-                        ${itemIcon}
-                    </div>
-
-                    <div class="forecast-content">
-
-                        <div class="forecast-time">
-                            ${formatForecastTime(
-                item.start_time,
-                item.end_time
-            )}
-                        </div>
-
-                        <div class="forecast-weather">
-                            ${item.weather || "未知"}
-                        </div>
-
-                    </div>
-
-                    <div class="forecast-temp">
-                        ${itemMin}
-                        <span>
-                            /
-                        </span>
-                        ${itemMax}
-                    </div>
-
-                    <div class="forecast-pop">
-                        💧 ${itemPop}
-                    </div>
-
-                </div>
-            `;
-        }
-    );
-
-
-    // -----------------------------
     // 更新右側面板
     // -----------------------------
 
@@ -1827,19 +1753,6 @@ function showWeatherPanel(location, cityWeather) {
 
                 </div>
 
-            </div>
-
-
-            <div class="detail-divider"></div>
-
-
-            <div class="forecast-title">
-                未來預報
-            </div>
-
-
-            <div class="forecast-list">
-                ${forecastHTML}
             </div>
 
         </div>

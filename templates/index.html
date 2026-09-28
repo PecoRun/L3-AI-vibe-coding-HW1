@@ -2,62 +2,33 @@
 <html lang="zh-Hant">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>台灣天氣地圖</title>
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-    <!-- 自己的 CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
 </head>
-
 
 <body>
 
-    <!-- =====================================
-         Header
-    ====================================== -->
-
     <header class="top-bar">
 
-        <div class="brand">
-
-            <div class="brand-icon">
-                ☁️
-            </div>
-
-            <div>
-
-                <h1>
-                    台灣天氣地圖
-                </h1>
-
-                <p>
-                    Taiwan Weather Map
-                </p>
-
-            </div>
-
+        <div class="top-bar-left">
+            <h1>台灣天氣地圖</h1>
+            <span class="subtitle">Taiwan Weather Map</span>
         </div>
 
-
-        <div class="header-actions">
+        <div class="top-bar-right">
 
             <span id="last-update" class="last-update">
                 尚未更新
             </span>
 
-            <button id="refresh-btn" class="refresh-btn">
-                <span id="refresh-icon">
-                    ↻
-                </span>
-
+            <button id="refresh-btn" class="refresh-btn" type="button">
+                <span id="refresh-icon">↻</span>
                 更新資料
             </button>
 
@@ -66,20 +37,25 @@
     </header>
 
 
-    <!-- =====================================
-         Main
-    ====================================== -->
-
     <main class="main-container">
+
+        <!-- ============================= -->
+        <!-- 地圖區域 -->
+        <!-- ============================= -->
 
         <section class="map-wrapper">
 
             <div id="map" class="map"></div>
 
+
+            <!-- ============================= -->
             <!-- 全台天氣概覽 -->
+            <!-- ============================= -->
+
             <div id="weekly-overview" class="weekly-overview">
 
                 <div class="overview-header">
+
                     <div>
                         <h2>全台天氣概覽</h2>
                         <p>明天起未來 7 天天氣</p>
@@ -88,12 +64,14 @@
                     <button id="overview-toggle" class="overview-toggle" type="button">
                         −
                     </button>
+
                 </div>
 
 
                 <div id="overview-content" class="overview-content">
 
                     <!-- 縣市選擇 -->
+
                     <div class="overview-field">
 
                         <label for="overview-location">
@@ -101,15 +79,18 @@
                         </label>
 
                         <select id="overview-location" class="overview-select">
+
                             <option value="">
                                 請選擇縣市
                             </option>
+
                         </select>
 
                     </div>
 
 
-                    <!-- 目前天氣摘要 -->
+                    <!-- 天氣摘要 -->
+
                     <div id="overview-summary" class="overview-summary">
 
                         <div class="overview-weather-icon">
@@ -131,7 +112,8 @@
                     </div>
 
 
-                    <!-- 溫度 -->
+                    <!-- 溫度 / 降雨機率 -->
+
                     <div class="overview-temperature">
 
                         <div class="temperature-item">
@@ -144,7 +126,9 @@
                                 —
                             </strong>
 
-                            <span>°C</span>
+                            <span>
+                                °C
+                            </span>
 
                         </div>
 
@@ -159,11 +143,15 @@
                                 —
                             </strong>
 
-                            <span>°C</span>
+                            <span>
+                                °C
+                            </span>
 
                         </div>
 
+
                         <div class="temperature-item">
+
                             <span class="temperature-label">
                                 降雨機率
                             </span>
@@ -172,18 +160,25 @@
                                 —
                             </strong>
 
-                            <span>%</span>
+                            <span>
+                                %
+                            </span>
+
                         </div>
 
                     </div>
 
 
-                    <!-- 7 天圖表預留 -->
+                    <!-- 一週溫度折線圖 -->
+
                     <div class="overview-chart-wrapper">
 
                         <canvas id="weekly-temperature-chart"></canvas>
 
                     </div>
+
+
+                    <!-- 一週天氣列表 -->
 
                     <div id="weekly-forecast-list" class="weekly-forecast-list"></div>
 
@@ -191,7 +186,10 @@
 
             </div>
 
+
+            <!-- ============================= -->
             <!-- Loading -->
+            <!-- ============================= -->
 
             <div id="loading" class="loading-overlay hidden">
 
@@ -208,21 +206,23 @@
             </div>
 
 
+            <!-- ============================= -->
             <!-- Message -->
+            <!-- ============================= -->
 
-            <div id="message" class="message hidden">
-            </div>
+            <div id="message" class="message hidden"></div>
 
         </section>
 
 
-        <!-- =================================
-             Weather Detail
-        ================================== -->
+        <!-- ============================= -->
+        <!-- 右側天氣詳細資訊 -->
+        <!-- ============================= -->
 
         <aside id="weather-panel" class="weather-panel">
 
             <!-- 尚未選擇 -->
+
             <div id="panel-empty" class="panel-empty">
 
                 <div class="panel-icon">
@@ -242,9 +242,9 @@
 
 
             <!-- 天氣詳細資訊 -->
+
             <div id="panel-content" class="panel-content hidden">
 
-                <!-- 標題 -->
                 <div class="panel-header">
 
                     <div>
@@ -263,11 +263,13 @@
 
 
                 <!-- 目前天氣 -->
+
                 <div class="panel-current-weather">
 
                     <div id="panel-weather-icon" class="panel-weather-icon">
                         🌤️
                     </div>
+
 
                     <div class="panel-current-info">
 
@@ -275,15 +277,19 @@
                             —
                         </div>
 
+
                         <div class="panel-temperature">
 
                             <span id="panel-max-temp">
                                 —
                             </span>
 
-                            <span>°</span>
+                            <span>
+                                °
+                            </span>
 
                         </div>
+
 
                         <div class="panel-temperature-range">
 
@@ -306,7 +312,8 @@
                 </div>
 
 
-                <!-- 天氣摘要 -->
+                <!-- 降雨機率 -->
+
                 <div class="panel-summary">
 
                     <div class="panel-summary-item">
@@ -319,21 +326,10 @@
                             —
                         </strong>
 
-                        <span>%</span>
+                        <span>
+                            %
+                        </span>
 
-                    </div>
-
-                </div>
-
-
-                <!-- 未來預報 -->
-                <div class="panel-section">
-
-                    <h3>
-                        未來天氣
-                    </h3>
-
-                    <div id="panel-forecast-list" class="panel-forecast-list">
                     </div>
 
                 </div>
@@ -345,13 +341,17 @@
     </main>
 
 
+    <!-- ============================= -->
+    <!-- JavaScript -->
+    <!-- ============================= -->
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/weather.js') }}"></script>
 
+    <script src="{{ url_for('static', filename='js/weather.js') }}"></script>
 
 </body>
 

@@ -124,6 +124,17 @@ def save_weather_data(data):
             location_id = location_row["id"]
 
             # -------------------------
+            # 清除該縣市舊的預報資料
+            # -------------------------
+            cursor.execute(
+                """
+                DELETE FROM weather_forecast
+                WHERE location_id = ?
+                """,
+                (location_id,)
+            )
+
+            # -------------------------
             # 天氣資料
             # -------------------------
             weather_elements = {}
