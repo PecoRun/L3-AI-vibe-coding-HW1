@@ -8,7 +8,8 @@ app = Flask(__name__)
 
 
 # 啟動時確認 Database 存在
-init_database()
+if __name__ == "__main__":
+    init_database()
 
 
 @app.route("/")
