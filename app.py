@@ -268,7 +268,11 @@ def debug_township_db():
     # 4. 如果找到大湖鄉，再查它的天氣
     weather_rows = []
 
+    join_rows = []
+
     if township:
+
+        # 直接查 township_id
         cursor.execute("""
             SELECT
                 township_id,
@@ -288,6 +292,35 @@ def debug_township_db():
             for row in cursor.fetchall()
         ]
 
+        # 測試原本 API 使用的 JOIN
+        cursor.execute("""
+            SELECT
+                t.township_name,
+                t.city_name,
+                w.forecast_date,
+                w.max_temp,
+                w.min_temp,
+                w.weather,
+                w.weather_code,
+                w.pop,
+                w.updated_at
+            FROM township_weather_forecast w
+            JOIN townships t
+                ON w.township_id = t.id
+            WHERE
+                t.city_name = ?
+                AND t.township_name = ?
+            ORDER BY w.forecast_date
+        """, (
+            "苗栗縣",
+            "大湖鄉",
+        ))
+
+        join_rows = [
+            dict(row)
+            for row in cursor.fetchall()
+        ]
+
     conn.close()
 
     return jsonify({
@@ -295,7 +328,8 @@ def debug_township_db():
         "township_count": township_count,
         "weather_count": weather_count,
         "township": dict(township) if township else None,
-        "weather_rows": weather_rows
+        "weather_rows": weather_rows,
+        "join_rows": join_rows
     })
 
 
