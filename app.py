@@ -175,6 +175,9 @@ def get_township_weather(
     township_name
 ):
 
+    print("DEBUG city_name =", repr(city_name))
+    print("DEBUG township_name =", repr(township_name))
+
     import sqlite3
     from database.init_db import DATABASE_PATH
 
