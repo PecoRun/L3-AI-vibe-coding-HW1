@@ -230,6 +230,75 @@ def get_township_weather(
     })
 
 
+@app.route("/api/debug/township-db", methods=["GET"])
+def debug_township_db():
+
+    import sqlite3
+    from database.init_db import DATABASE_PATH
+
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.cursor()
+
+    # 1. township_weather_forecast 總筆數
+    cursor.execute("""
+        SELECT COUNT(*) AS count
+        FROM township_weather_forecast
+    """)
+    weather_count = cursor.fetchone()["count"]
+
+    # 2. townships 總筆數
+    cursor.execute("""
+        SELECT COUNT(*) AS count
+        FROM townships
+    """)
+    township_count = cursor.fetchone()["count"]
+
+    # 3. 找大湖鄉
+    cursor.execute("""
+        SELECT id, city_name, township_name
+        FROM townships
+        WHERE city_name = ?
+          AND township_name = ?
+    """, ("苗栗縣", "大湖鄉"))
+
+    township = cursor.fetchone()
+
+    # 4. 如果找到大湖鄉，再查它的天氣
+    weather_rows = []
+
+    if township:
+        cursor.execute("""
+            SELECT
+                township_id,
+                forecast_date,
+                max_temp,
+                min_temp,
+                weather,
+                weather_code,
+                pop
+            FROM township_weather_forecast
+            WHERE township_id = ?
+            ORDER BY forecast_date
+        """, (township["id"],))
+
+        weather_rows = [
+            dict(row)
+            for row in cursor.fetchall()
+        ]
+
+    conn.close()
+
+    return jsonify({
+        "database_path": str(DATABASE_PATH),
+        "township_count": township_count,
+        "weather_count": weather_count,
+        "township": dict(township) if township else None,
+        "weather_rows": weather_rows
+    })
+
+
 @app.route("/api/weather/weekly", methods=["GET"])
 def get_weekly_weather():
 
