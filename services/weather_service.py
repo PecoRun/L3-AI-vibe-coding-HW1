@@ -1,7 +1,7 @@
-import sqlite3
 from datetime import datetime
 
-from database.init_db import DATABASE_PATH
+from database.db import get_db_connection, get_db_placeholder
+
 from services.cwa_api import (
     fetch_weather_data,
     fetch_weekly_weather_data,
@@ -10,22 +10,14 @@ from services.cwa_api import (
 )
 
 
-def get_connection():
-    """取得 SQLite 連線"""
-
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-
-    return conn
-
-
 def save_township_data(data, city_name):
     """
     將 CWA 鄉鎮資料儲存到 SQLite
     """
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
+    placeholder = get_db_placeholder()
 
     locations = data["records"]["Locations"][0]["Location"]
 
@@ -36,7 +28,7 @@ def save_township_data(data, city_name):
         latitude = float(location["Latitude"])
         longitude = float(location["Longitude"])
 
-        cursor.execute("""
+        cursor.execute(f"""
             INSERT INTO townships (
                 city_name,
                 township_name,
@@ -44,7 +36,13 @@ def save_township_data(data, city_name):
                 latitude,
                 longitude
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
 
             ON CONFLICT(city_name, township_name)
             DO UPDATE SET
@@ -74,8 +72,9 @@ def save_weather_data(data):
     將 CWA 天氣資料儲存到 SQLite。
     """
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
+    placeholder = get_db_placeholder()
 
     try:
         locations = data["records"]["location"]
@@ -88,27 +87,26 @@ def save_weather_data(data):
             # -------------------------
             # 建立 / 取得地區
             # -------------------------
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO locations
+            cursor.execute(f"""
+                INSERT INTO locations
                 (
                     location_name,
                     city_name
                 )
-                VALUES (?, ?)
-                """,
-                (
-                    location_name,
-                    city_name
-                )
-            )
+                VALUES ({placeholder}, {placeholder})
+                ON CONFLICT(location_name, city_name)
+                DO NOTHING
+            """, (
+                location_name,
+                city_name
+            ))
 
             cursor.execute(
-                """
+                f"""
                 SELECT id
                 FROM locations
-                WHERE location_name = ?
-                AND city_name = ?
+                WHERE location_name = {placeholder}
+                AND city_name = {placeholder}
                 """,
                 (
                     location_name,
@@ -127,9 +125,9 @@ def save_weather_data(data):
             # 清除該縣市舊的預報資料
             # -------------------------
             cursor.execute(
-                """
+                f"""
                 DELETE FROM weather_forecast
-                WHERE location_id = ?
+                WHERE location_id = {placeholder}
                 """,
                 (location_id,)
             )
@@ -214,35 +212,44 @@ def save_weather_data(data):
                 # 儲存資料
                 # -------------------------
                 cursor.execute(
-                    """
-                    INSERT OR REPLACE INTO weather_forecast
-                    (
+                    f"""
+                    INSERT INTO weather_forecast (
                         location_id,
                         start_time,
                         end_time,
-                        weather,
-                        pop,
                         min_temp,
                         max_temp,
+                        pop,
+                        weather,
                         comfort,
                         updated_at
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder}
+                    )
                     """,
                     (
                         location_id,
                         start_time,
                         end_time,
-                        weather,
-                        int(pop_value)
-                        if pop_value.isdigit()
-                        else None,
                         int(min_temp)
                         if min_temp.isdigit()
                         else None,
                         int(max_temp)
                         if max_temp.isdigit()
                         else None,
+                        int(pop_value)
+                        if pop_value.isdigit()
+                        else None,
+                        weather,
                         comfort,
                         datetime.now().isoformat()
                     )
@@ -252,14 +259,18 @@ def save_weather_data(data):
         # 更新紀錄
         # -------------------------
         cursor.execute(
-            """
+            f"""
             INSERT INTO update_log
             (
                 source,
                 status,
                 message
             )
-            VALUES (?, ?, ?)
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
             """,
             (
                 "CWA F-C0032-001",
@@ -275,14 +286,18 @@ def save_weather_data(data):
         conn.rollback()
 
         cursor.execute(
-            """
+            f"""
             INSERT INTO update_log
             (
                 source,
                 status,
                 message
             )
-            VALUES (?, ?, ?)
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
             """,
             (
                 "CWA F-C0032-001",
@@ -300,8 +315,9 @@ def save_weather_data(data):
 
 
 def save_weekly_weather_data(data):
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
+    placeholder = get_db_placeholder()
 
     try:
         locations = data["records"]["Locations"][0]["Location"]
@@ -318,10 +334,10 @@ def save_weekly_weather_data(data):
             # --------------------------------------------------
 
             cursor.execute(
-                """
+                f"""
                 SELECT id
                 FROM locations
-                WHERE location_name = ?
+                WHERE location_name = {placeholder}
                 """,
                 (location_name,)
             )
@@ -570,6 +586,14 @@ def save_weekly_weather_data(data):
             # 寫入資料庫
             # --------------------------------------------------
 
+            cursor.execute(
+                f"""
+                DELETE FROM weather_daily_forecast
+                WHERE location_id = {placeholder}
+                """,
+                (location_id,)
+            )
+
             for forecast_date in sorted(
                 daily_data.keys()
             )[:7]:
@@ -579,20 +603,25 @@ def save_weekly_weather_data(data):
                 ]
 
                 cursor.execute(
-                    """
-                    INSERT OR REPLACE INTO
-                    weather_daily_forecast
-                    (
+                    f"""
+                    INSERT INTO weather_daily_forecast (
                         location_id,
                         forecast_date,
                         max_temp,
                         min_temp,
                         weather,
                         weather_code,
-                        pop,
-                        updated_at
+                        pop
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder},
+                        {placeholder}
+                    )
                     """,
                     (
                         location_id,
@@ -601,8 +630,7 @@ def save_weekly_weather_data(data):
                         item["min_temp"],
                         item["weather"],
                         item["weather_code"],
-                        item["pop"],
-                        datetime.now().isoformat()
+                        item["pop"]
                     )
                 )
 
@@ -872,8 +900,9 @@ def save_township_weather(data):
         data["records"]["Locations"][0].keys()
     )
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
+    placeholder = get_db_placeholder()
 
     # 解析 CWA 資料
     weather_data = parse_township_weather(data)
@@ -887,15 +916,18 @@ def save_township_weather(data):
         # 找到對應的 township_id
         city_name = data["records"]["Locations"][0]["LocationsName"]
 
-        cursor.execute("""
+        cursor.execute(
+            f"""
             SELECT id
             FROM townships
-            WHERE city_name = ?
-            AND township_name = ?
-        """, (
-            city_name,
-            township_name
-        ))
+            WHERE city_name = {placeholder}
+            AND township_name = {placeholder}
+            """,
+            (
+                city_name,
+                township_name
+            )
+        )
 
         township = cursor.fetchone()
 
@@ -908,7 +940,8 @@ def save_township_weather(data):
         township_id = township["id"]
 
         # 儲存天氣資料
-        cursor.execute("""
+        cursor.execute(
+            f"""
             INSERT INTO township_weather_forecast (
                 township_id,
                 forecast_date,
@@ -918,7 +951,15 @@ def save_township_weather(data):
                 weather_code,
                 pop
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
 
             ON CONFLICT(
                 township_id,

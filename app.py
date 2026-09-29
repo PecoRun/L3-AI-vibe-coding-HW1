@@ -1,10 +1,27 @@
 from flask import Flask, jsonify, render_template
-
+import os
 from database.init_db import init_database
+from database.db import get_db_connection, get_db_placeholder
 from services.weather_service import refresh_weather_data
 
 
 app = Flask(__name__)
+
+
+@app.route("/api/debug/db")
+def debug_db():
+
+    from database.db import DATABASE_BACKEND
+
+    return {
+        "database_backend": DATABASE_BACKEND,
+        "has_database_url": bool(
+            os.getenv("DATABASE_URL")
+        ),
+        "has_cwa_api_key": bool(
+            os.getenv("CWA_API_KEY")
+        )
+    }
 
 
 # 啟動時確認 Database 存在
@@ -44,12 +61,7 @@ def refresh_weather():
 @app.route("/api/weather", methods=["GET"])
 def get_weather():
 
-    import sqlite3
-    from database.init_db import DATABASE_PATH
-
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -75,7 +87,10 @@ def get_weather():
 
     conn.close()
 
-    weather_data = [dict(row) for row in rows]
+    weather_data = [
+        dict(row)
+        for row in rows
+    ]
 
     return jsonify({
         "success": True,
@@ -87,15 +102,7 @@ def get_weather():
 @app.route("/api/locations", methods=["GET"])
 def get_locations():
 
-    import sqlite3
-    from database.init_db import DATABASE_PATH
-
-    conn = sqlite3.connect(
-        DATABASE_PATH
-    )
-
-    conn.row_factory = sqlite3.Row
-
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -128,12 +135,7 @@ def get_locations():
 @app.route("/api/townships", methods=["GET"])
 def get_townships():
 
-    import sqlite3
-    from database.init_db import DATABASE_PATH
-
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -180,15 +182,12 @@ def get_township_weather(
     city_name = unquote(city_name)
     township_name = unquote(township_name)
 
-    import sqlite3
-    from database.init_db import DATABASE_PATH
-
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    placeholder = get_db_placeholder()
+
+    cursor.execute(f"""
     SELECT
         t.township_name,
         t.city_name,
@@ -203,8 +202,8 @@ def get_township_weather(
     JOIN townships t
         ON w.township_id = t.id
     WHERE
-        t.city_name = ?
-        AND t.township_name = ?
+        t.city_name = {placeholder}
+        AND t.township_name = {placeholder}
     ORDER BY w.forecast_date
     """, (
         city_name,
@@ -234,15 +233,11 @@ def get_township_weather(
         "data": weather_data
     })
 
+
 @app.route("/api/weather/weekly", methods=["GET"])
 def get_weekly_weather():
 
-    import sqlite3
-    from database.init_db import DATABASE_PATH
-
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
