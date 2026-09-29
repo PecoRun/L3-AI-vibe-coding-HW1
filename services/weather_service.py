@@ -648,19 +648,35 @@ def save_weekly_weather_data(data):
 
 def refresh_weather_data():
 
+    print("========== REFRESH START ==========")
+
     # 1. 更新 36 小時縣市天氣
+    print("[1] 開始抓取 36 小時縣市天氣...")
     data = fetch_weather_data()
+    print("[1] CWA 36 小時資料取得成功")
+
+    print("[1] 開始儲存 36 小時縣市天氣...")
     save_weather_data(data)
+    print("[1] 36 小時縣市天氣儲存成功")
 
     # 2. 更新 7 天縣市預報
+    print("[2] 開始抓取 7 天縣市預報...")
     weekly_data = fetch_weekly_weather_data()
+    print("[2] CWA 7 天資料取得成功")
+
+    print("[2] 開始儲存 7 天縣市預報...")
     save_weekly_weather_data(weekly_data)
+    print("[2] 7 天縣市預報儲存成功")
 
     # 3. 更新 22 縣市鄉鎮資料
     for city_name, location_id in CITY_LOCATION_IDS.items():
 
         print(
-            f"開始更新 {city_name} 鄉鎮資料..."
+            f"[3] 開始更新 {city_name} 鄉鎮資料..."
+        )
+
+        print(
+            f"[3] {city_name}：開始抓取 CWA..."
         )
 
         township_data = (
@@ -669,16 +685,36 @@ def refresh_weather_data():
             )
         )
 
-        # 儲存鄉鎮基本資料
+        print(
+            f"[3] {city_name}：CWA 資料取得成功"
+        )
+
+        print(
+            f"[3] {city_name}：開始儲存鄉鎮基本資料..."
+        )
+
         save_township_data(
             township_data,
             city_name
         )
 
-        # 儲存鄉鎮天氣
+        print(
+            f"[3] {city_name}：鄉鎮基本資料儲存成功"
+        )
+
+        print(
+            f"[3] {city_name}：開始儲存鄉鎮天氣..."
+        )
+
         save_township_weather(
             township_data
         )
+
+        print(
+            f"[3] {city_name}：鄉鎮天氣儲存成功"
+        )
+
+    print("========== REFRESH COMPLETE ==========")
 
     return {
         "success": True,
@@ -973,14 +1009,14 @@ def save_township_weather(data):
                 pop = excluded.pop,
                 updated_at = CURRENT_TIMESTAMP
         """, (
-            township_id,
-            item["forecast_date"],
-            item["max_temp"],
-            item["min_temp"],
-            item["weather"],
-            item["weather_code"],
-            item["pop"]
-        ))
+                township_id,
+                item["forecast_date"],
+                item["max_temp"],
+                item["min_temp"],
+                item["weather"],
+                item["weather_code"],
+                item["pop"]
+            ))
 
         saved_count += 1
 
