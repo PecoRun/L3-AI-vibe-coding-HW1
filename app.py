@@ -24,6 +24,42 @@ def debug_db():
     }
 
 
+@app.route("/api/debug/db-write")
+def debug_db_write():
+
+    from database.db import get_db_connection
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT COUNT(*) FROM locations"
+        )
+
+        result = cursor.fetchone()
+
+        conn.commit()
+
+        return {
+            "success": True,
+            "locations_count": result[0]
+        }
+
+    except Exception as e:
+
+        conn.rollback()
+
+        return {
+            "success": False,
+            "error": str(e)
+        }, 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # 啟動時確認 Database 存在
 if __name__ == "__main__":
     init_database()
