@@ -33,17 +33,28 @@ def debug_db_write():
     cursor = conn.cursor()
 
     try:
+        cursor.execute("""
+            CREATE TEMP TABLE debug_write_test (
+                id INTEGER
+            )
+        """)
+
         cursor.execute(
-            "SELECT COUNT(*) AS count FROM locations"
+            "INSERT INTO debug_write_test (id) VALUES (%s)",
+            (999,)
+        )
+
+        cursor.execute(
+            "SELECT id FROM debug_write_test"
         )
 
         result = cursor.fetchone()
 
-        conn.commit()
+        conn.rollback()
 
         return {
             "success": True,
-            "locations_count": result["count"]
+            "write_test": result["id"]
         }
 
     except Exception as e:
