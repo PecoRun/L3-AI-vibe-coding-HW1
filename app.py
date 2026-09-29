@@ -8,69 +8,6 @@ from services.weather_service import refresh_weather_data
 app = Flask(__name__)
 
 
-@app.route("/api/debug/db")
-def debug_db():
-
-    from database.db import DATABASE_BACKEND
-
-    return {
-        "database_backend": DATABASE_BACKEND,
-        "has_database_url": bool(
-            os.getenv("DATABASE_URL")
-        ),
-        "has_cwa_api_key": bool(
-            os.getenv("CWA_API_KEY")
-        )
-    }
-
-
-@app.route("/api/debug/db-write")
-def debug_db_write():
-
-    from database.db import get_db_connection
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("""
-            CREATE TEMP TABLE debug_write_test (
-                id INTEGER
-            )
-        """)
-
-        cursor.execute(
-            "INSERT INTO debug_write_test (id) VALUES (%s)",
-            (999,)
-        )
-
-        cursor.execute(
-            "SELECT id FROM debug_write_test"
-        )
-
-        result = cursor.fetchone()
-
-        conn.rollback()
-
-        return {
-            "success": True,
-            "write_test": result["id"]
-        }
-
-    except Exception as e:
-
-        conn.rollback()
-
-        return {
-            "success": False,
-            "error": str(e)
-        }, 500
-
-    finally:
-        cursor.close()
-        conn.close()
-
-
 # 啟動時確認 Database 存在
 if __name__ == "__main__":
     init_database()
