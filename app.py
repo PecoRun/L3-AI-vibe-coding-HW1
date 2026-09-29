@@ -34,7 +34,7 @@ def debug_db_write():
 
     try:
         cursor.execute(
-            "SELECT COUNT(*) FROM locations"
+            "SELECT COUNT(*) AS count FROM locations"
         )
 
         result = cursor.fetchone()
@@ -43,7 +43,7 @@ def debug_db_write():
 
         return {
             "success": True,
-            "locations_count": result[0]
+            "locations_count": result["count"]
         }
 
     except Exception as e:
