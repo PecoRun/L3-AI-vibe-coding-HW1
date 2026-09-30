@@ -408,7 +408,7 @@ def save_weekly_weather_data(data):
             for item in max_temp_data:
 
                 forecast_date = item[
-                    "EndTime"
+                    "StartTime"
                 ][:10]
 
                 value = item[
@@ -451,7 +451,7 @@ def save_weekly_weather_data(data):
             for item in min_temp_data:
 
                 forecast_date = item[
-                    "EndTime"
+                    "StartTime"
                 ][:10]
 
                 value = item[
@@ -494,7 +494,7 @@ def save_weekly_weather_data(data):
             for item in pop_data:
 
                 forecast_date = item[
-                    "EndTime"
+                    "StartTime"
                 ][:10]
 
                 value = item[
@@ -533,7 +533,7 @@ def save_weekly_weather_data(data):
 
             # --------------------------------------------------
             # 天氣現象
-            # 取每天 06:00 開始的白天天氣
+            # 每天以 StartTime 所屬日期作為天氣現象日期
             # --------------------------------------------------
 
             for item in weather_data:
@@ -542,9 +542,7 @@ def save_weekly_weather_data(data):
                     "StartTime"
                 ]
 
-                forecast_date = item[
-                    "EndTime"
-                ][:10]
+                forecast_date = start_time[:10]
 
                 weather = item[
                     "ElementValue"
@@ -558,10 +556,6 @@ def save_weekly_weather_data(data):
                     "WeatherCode"
                 )
 
-                start_datetime = datetime.fromisoformat(
-                    start_time
-                )
-
                 if forecast_date not in daily_data:
 
                     daily_data[forecast_date] = {
@@ -571,6 +565,25 @@ def save_weekly_weather_data(data):
                         "weather_code": None,
                         "pop": None
                     }
+
+                # 每天第一筆天氣作為預設值
+                if daily_data[
+                    forecast_date
+                ]["weather"] is None:
+
+                    daily_data[
+                        forecast_date
+                    ]["weather"] = weather
+
+                    daily_data[
+                        forecast_date
+                    ]["weather_code"] = weather_code
+
+                # 如果有 06:00 開始的白天天氣，
+                # 優先使用白天天氣
+                start_datetime = datetime.fromisoformat(
+                    start_time
+                )
 
                 if start_datetime.hour == 6:
 
@@ -582,21 +595,26 @@ def save_weekly_weather_data(data):
                         forecast_date
                     ]["weather_code"] = weather_code
 
+            print(
+                "DEBUG 2026-09-29:",
+                daily_data.get("2026-09-29")
+            )
+
             # --------------------------------------------------
             # 寫入資料庫
             # --------------------------------------------------
 
             cursor.execute(
                 f"""
-                DELETE FROM weather_daily_forecast
-                WHERE location_id = {placeholder}
-                """,
+                    DELETE FROM weather_daily_forecast
+                    WHERE location_id = {placeholder}
+                    """,
                 (location_id,)
             )
 
             for forecast_date in sorted(
                 daily_data.keys()
-            )[:7]:
+            )[:8]:
 
                 item = daily_data[
                     forecast_date
@@ -604,25 +622,25 @@ def save_weekly_weather_data(data):
 
                 cursor.execute(
                     f"""
-                    INSERT INTO weather_daily_forecast (
-                        location_id,
-                        forecast_date,
-                        max_temp,
-                        min_temp,
-                        weather,
-                        weather_code,
-                        pop
-                    )
-                    VALUES (
-                        {placeholder},
-                        {placeholder},
-                        {placeholder},
-                        {placeholder},
-                        {placeholder},
-                        {placeholder},
-                        {placeholder}
-                    )
-                    """,
+                        INSERT INTO weather_daily_forecast (
+                            location_id,
+                            forecast_date,
+                            max_temp,
+                            min_temp,
+                            weather,
+                            weather_code,
+                            pop
+                        )
+                        VALUES (
+                            {placeholder},
+                            {placeholder},
+                            {placeholder},
+                            {placeholder},
+                            {placeholder},
+                            {placeholder},
+                            {placeholder}
+                        )
+                        """,
                     (
                         location_id,
                         forecast_date,
@@ -634,7 +652,7 @@ def save_weekly_weather_data(data):
                     )
                 )
 
-        conn.commit()
+            conn.commit()
 
     except Exception:
 

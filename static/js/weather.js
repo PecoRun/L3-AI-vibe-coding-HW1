@@ -359,11 +359,25 @@ function updateOverview(locationName) {
 
 
     // 找出該縣市的 7 天資料
-    const locationData =
-        weeklyWeatherData.filter(
-            item =>
-                item.location_name === locationName
-        );
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const locationData = weeklyWeatherData
+        .filter(item => {
+            if (item.location_name !== locationName) {
+                return false;
+            }
+
+            const forecastDate = new Date(
+                item.forecast_date + "T00:00:00"
+            );
+
+            return forecastDate > today;
+        })
+        .sort((a, b) =>
+            a.forecast_date.localeCompare(b.forecast_date)
+        )
+        .slice(0, 7);
 
 
     if (locationData.length === 0) {
@@ -594,6 +608,7 @@ function showTownshipWeatherPanel(
     weatherData
 ) {
 
+
     const panel =
         document.getElementById(
             "weather-panel"
@@ -615,23 +630,23 @@ function showTownshipWeatherPanel(
 
         panel.innerHTML = `
 
-            <div class="panel-empty">
+        <div class="panel-empty">
 
-                <div class="panel-icon">
-                    🌥️
-                </div>
-
-                <h2>
-                    ${townshipName}
-                </h2>
-
-                <p>
-                    目前沒有可用的天氣資料。
-                </p>
-
+            <div class="panel-icon">
+                🌥️
             </div>
 
-        `;
+            <h2>
+                ${townshipName}
+            </h2>
+
+            <p>
+                目前沒有可用的天氣資料。
+            </p>
+
+        </div>
+
+    `;
 
         return;
     }
@@ -651,11 +666,51 @@ function showTownshipWeatherPanel(
 
 
     // --------------------------------------
-    // 第一筆作為目前天氣
+    // 取得今天日期
+    // --------------------------------------
+
+    const today =
+        new Date();
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    // --------------------------------------
+    // 找出今天的天氣資料
     // --------------------------------------
 
     const current =
-        sortedWeatherData[0];
+        sortedWeatherData.find(
+            item => {
+
+                const [
+                    year,
+                    month,
+                    day
+                ] =
+                    item.forecast_date
+                        .split("-")
+                        .map(Number);
+
+                const forecastDate =
+                    new Date(
+                        year,
+                        month - 1,
+                        day
+                    );
+
+                return (
+                    forecastDate.getTime() ===
+                    today.getTime()
+                );
+            }
+        ) || sortedWeatherData[0];
+
 
     const cityName =
         current.city_name || "—";
@@ -691,13 +746,43 @@ function showTownshipWeatherPanel(
 
 
     // --------------------------------------
+    // 未來預報
+    // 只保留今天之後的資料
+    // --------------------------------------
+
+    const futureWeatherData =
+        sortedWeatherData.filter(
+            item => {
+
+                const [
+                    year,
+                    month,
+                    day
+                ] =
+                    item.forecast_date
+                        .split("-")
+                        .map(Number);
+
+                const forecastDate =
+                    new Date(
+                        year,
+                        month - 1,
+                        day
+                    );
+
+                return forecastDate > today;
+            }
+        );
+
+
+    // --------------------------------------
     // 建立未來預報
     // --------------------------------------
 
     let forecastHTML = "";
 
 
-    sortedWeatherData.forEach(
+    futureWeatherData.forEach(
         (item, index) => {
 
             const [
@@ -770,46 +855,46 @@ function showTownshipWeatherPanel(
 
             forecastHTML += `
 
-                <div class="forecast-item">
+            <div class="forecast-item">
 
-                    <div class="forecast-icon">
-                        ${itemIcon}
+                <div class="forecast-icon">
+                    ${itemIcon}
+                </div>
+
+
+                <div class="forecast-content">
+
+                    <div class="forecast-time">
+                        ${dateText}
                     </div>
 
-
-                    <div class="forecast-content">
-
-                        <div class="forecast-time">
-                            ${dateText}
-                        </div>
-
-                        <div class="forecast-weather">
-                            ${item.weather || "未知"}
-                        </div>
-
-                    </div>
-
-
-                    <div class="forecast-temp">
-
-                        ${itemMin}
-
-                        <span>
-                            /
-                        </span>
-
-                        ${itemMax}
-
-                    </div>
-
-
-                    <div class="forecast-pop">
-                        💧 ${itemPop}
+                    <div class="forecast-weather">
+                        ${item.weather || "未知"}
                     </div>
 
                 </div>
 
-            `;
+
+                <div class="forecast-temp">
+
+                    ${itemMin}
+
+                    <span>
+                        /
+                    </span>
+
+                    ${itemMax}
+
+                </div>
+
+
+                <div class="forecast-pop">
+                    💧 ${itemPop}
+                </div>
+
+            </div>
+
+        `;
         }
     );
 
@@ -820,138 +905,141 @@ function showTownshipWeatherPanel(
 
     panel.innerHTML = `
 
-        <div class="weather-detail">
+    <div class="weather-detail">
 
 
-            <!-- 鄉鎮名稱 -->
+        <!-- 鄉鎮名稱 -->
 
-            <div class="detail-location">
+        <div class="detail-location">
 
-                ${cityName}・${townshipName}
+            ${cityName}・${townshipName}
 
-            </div>
-
-
-            <!-- 天氣 Icon -->
-
-            <div class="detail-weather-icon">
-
-                ${weatherIcon}
-
-            </div>
+        </div>
 
 
-            <!-- 天氣 -->
+        <!-- 天氣 Icon -->
 
-            <div class="detail-weather">
+        <div class="detail-weather-icon">
 
-                ${weather}
+            ${weatherIcon}
 
-            </div>
-
-
-            <!-- 最高溫 -->
-
-            <div class="detail-temp">
-
-                ${maxTemp}
-
-            </div>
+        </div>
 
 
-            <!-- 溫度範圍 -->
+        <!-- 天氣 -->
 
-            <div class="detail-range">
+        <div class="detail-weather">
 
-                低溫 ${minTemp}
+            ${weather}
+
+        </div>
+
+
+        <!-- 最高溫 -->
+
+        <div class="detail-temp">
+
+            ${maxTemp}
+
+        </div>
+
+
+        <!-- 溫度範圍 -->
+
+        <div class="detail-range">
+
+            低溫 ${minTemp}
+
+            <span>
+                •
+            </span>
+
+            高溫 ${maxTemp}
+
+        </div>
+
+
+        <div class="detail-divider">
+        </div>
+
+
+        <!-- 天氣資訊 -->
+
+        <div class="detail-info">
+
+
+            <div class="info-item">
 
                 <span>
-                    •
+                    💧
                 </span>
 
-                高溫 ${maxTemp}
+                <div>
 
-            </div>
+                    <small>
+                        降雨機率
+                    </small>
 
-
-            <div class="detail-divider">
-            </div>
-
-
-            <!-- 天氣資訊 -->
-
-            <div class="detail-info">
-
-
-                <div class="info-item">
-
-                    <span>
-                        💧
-                    </span>
-
-                    <div>
-
-                        <small>
-                            降雨機率
-                        </small>
-
-                        <strong>
-                            ${pop}
-                        </strong>
-
-                    </div>
+                    <strong>
+                        ${pop}
+                    </strong>
 
                 </div>
 
+            </div>
 
-                <div class="info-item">
 
-                    <span>
-                        🌡️
-                    </span>
+            <div class="info-item">
 
-                    <div>
+                <span>
+                    🌡️
+                </span>
 
-                        <small>
-                            溫度範圍
-                        </small>
+                <div>
 
-                        <strong>
-                            ${minTemp} ～ ${maxTemp}
-                        </strong>
+                    <small>
+                        溫度範圍
+                    </small>
 
-                    </div>
+                    <strong>
+                        ${minTemp} ～ ${maxTemp}
+                    </strong>
 
                 </div>
-
-
-            </div>
-
-
-            <div class="detail-divider">
-            </div>
-
-
-            <!-- 未來預報 -->
-
-            <div class="forecast-title">
-
-                未來預報
-
-            </div>
-
-
-            <div class="forecast-list">
-
-                ${forecastHTML}
 
             </div>
 
 
         </div>
 
-    `;
+
+        <div class="detail-divider">
+        </div>
+
+
+        <!-- 未來預報 -->
+
+        <div class="forecast-title">
+
+            未來預報
+
+        </div>
+
+
+        <div class="forecast-list">
+
+            ${forecastHTML}
+
+        </div>
+
+
+    </div>
+
+`;
+
+
 }
+
 
 function renderWeeklyForecastList(locationData) {
 
