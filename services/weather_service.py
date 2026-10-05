@@ -1,13 +1,23 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from database.db import get_db_connection, get_db_placeholder
 
-from services.cwa_api import (
-    fetch_weather_data,
-    fetch_weekly_weather_data,
-    fetch_township_weather_data,
-    CITY_LOCATION_IDS
-)
+from services.cwa_api import fetch_observation_data
+
+
+def get_taiwan_today():
+    """
+    臺灣時間的今天，格式 YYYY-MM-DD。
+
+    不用 datetime.now() / date.today()：Vercel 的伺服器是 UTC，
+    臺灣時間 00:00～08:00 會拿到前一天。
+    臺灣沒有日光節約時間，固定 +8 即可
+    （也避免 Windows 沒有安裝時區資料庫時 ZoneInfo 找不到）。
+    """
+
+    taiwan_time = timezone(timedelta(hours=8))
+
+    return datetime.now(taiwan_time).date().isoformat()
 
 
 def save_township_data(data, city_name):
@@ -595,11 +605,6 @@ def save_weekly_weather_data(data):
                         forecast_date
                     ]["weather_code"] = weather_code
 
-            print(
-                "DEBUG 2026-09-29:",
-                daily_data.get("2026-09-29")
-            )
-
             # --------------------------------------------------
             # 寫入資料庫
             # --------------------------------------------------
@@ -665,36 +670,27 @@ def save_weekly_weather_data(data):
 
 
 def refresh_weather_data():
+    """
+    更新即時天氣觀測資料。
 
-    # 1. 更新 36 小時縣市天氣
-    data = fetch_weather_data()
-    save_weather_data(data)
+    Refresh 按鈕只更新 CWA O-A0003-001，
+    不重新抓取預報資料，以降低 API 請求次數與等待時間。
+    """
 
-    # 2. 更新 7 天縣市預報
-    weekly_data = fetch_weekly_weather_data()
-    save_weekly_weather_data(weekly_data)
-
-    # 3. 更新 22 縣市鄉鎮資料
-    for city_name, location_id in CITY_LOCATION_IDS.items():
-
-        township_data = fetch_township_weather_data(
-            location_id
-        )
-
-        save_township_data(
-            township_data,
-            city_name
-        )
-
-        save_township_weather(
-            township_data
-        )
+    # 更新 O-A0003-001 即時觀測資料
+    observation_data = fetch_observation_data()
+    save_observation_data(observation_data)
 
     return {
         "success": True,
-        "message": "天氣資料更新成功"
+        "message": "即時天氣資料更新成功",
+        "source": "CWA O-A0003-001",
+        "station_count": len(
+            observation_data
+            .get("records", {})
+            .get("Station", [])
+        )
     }
-
 
 def parse_township_weather(data):
     """
@@ -1001,3 +997,398 @@ def save_township_weather(data):
         f"鄉鎮天氣資料儲存成功："
         f"{saved_count} 筆"
     )
+
+def delete_expired_township_forecasts():
+    """
+    刪除已過期（早於臺灣今天）的鄉鎮預報。
+
+    save_township_weather 是「有就更新、沒有就新增」，
+    不會刪除舊日期，資料表會越來越大。
+    回傳刪除的筆數。
+    """
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    placeholder = get_db_placeholder()
+
+    try:
+
+        cursor.execute(
+            f"""
+            DELETE FROM township_weather_forecast
+            WHERE forecast_date < {placeholder}
+            """,
+            (get_taiwan_today(),)
+        )
+
+        deleted_count = cursor.rowcount
+
+        conn.commit()
+
+        return deleted_count
+
+    except Exception:
+
+        conn.rollback()
+        raise
+
+    finally:
+
+        conn.close()
+
+
+def parse_observation_data(data):
+    """
+    解析 CWA O-A0003-001 即時觀測資料。
+
+    每個測站只保留最新一筆資料。
+    使用 WGS84 座標。
+    """
+
+    stations = data.get("records", {}).get("Station", [])
+
+    results = []
+
+    for station in stations:
+        station_name = station.get("StationName")
+        station_id = station.get("StationId")
+
+        obs_time = (
+            station.get("ObsTime", {})
+            .get("DateTime")
+        )
+
+        # -----------------------------
+        # GeoInfo
+        # -----------------------------
+        geo_info = station.get("GeoInfo", {})
+
+        latitude = None
+        longitude = None
+
+        # 優先使用 WGS84
+        for coordinate in geo_info.get("Coordinates", []):
+            if coordinate.get("CoordinateName") == "WGS84":
+                try:
+                    latitude = float(
+                        coordinate.get("StationLatitude")
+                    )
+                    longitude = float(
+                        coordinate.get("StationLongitude")
+                    )
+                except (TypeError, ValueError):
+                    latitude = None
+                    longitude = None
+
+                break
+
+        # 如果沒有 WGS84，退回第一組座標
+        if latitude is None or longitude is None:
+            coordinates = geo_info.get("Coordinates", [])
+
+            if coordinates:
+                try:
+                    latitude = float(
+                        coordinates[0].get("StationLatitude")
+                    )
+                    longitude = float(
+                        coordinates[0].get("StationLongitude")
+                    )
+                except (TypeError, ValueError):
+                    latitude = None
+                    longitude = None
+
+        try:
+            altitude = float(
+                geo_info.get("StationAltitude")
+            )
+        except (TypeError, ValueError):
+            altitude = None
+
+        city_name = geo_info.get("CountyName")
+        township_name = geo_info.get("TownName")
+        city_code = geo_info.get("CountyCode")
+        township_code = geo_info.get("TownCode")
+
+        # -----------------------------
+        # WeatherElement
+        # -----------------------------
+        weather_element = station.get(
+            "WeatherElement",
+            {}
+        )
+
+        weather = weather_element.get("Weather")
+
+        # 降雨量
+        precipitation = None
+
+        now_data = weather_element.get("Now", {})
+
+        try:
+            precipitation = float(
+                now_data.get("Precipitation")
+            )
+        except (TypeError, ValueError):
+            precipitation = None
+
+        # 風向
+        try:
+            wind_direction = float(
+                weather_element.get("WindDirection")
+            )
+        except (TypeError, ValueError):
+            wind_direction = None
+
+        # 風速
+        try:
+            wind_speed = float(
+                weather_element.get("WindSpeed")
+            )
+        except (TypeError, ValueError):
+            wind_speed = None
+
+        # 氣溫
+        try:
+            air_temperature = float(
+                weather_element.get("AirTemperature")
+            )
+        except (TypeError, ValueError):
+            air_temperature = None
+
+        # 相對濕度
+        try:
+            relative_humidity = float(
+                weather_element.get("RelativeHumidity")
+            )
+        except (TypeError, ValueError):
+            relative_humidity = None
+
+        # 氣壓
+        try:
+            air_pressure = float(
+                weather_element.get("AirPressure")
+            )
+        except (TypeError, ValueError):
+            air_pressure = None
+
+        # UV
+        try:
+            uv_index = float(
+                weather_element.get("UVIndex")
+            )
+        except (TypeError, ValueError):
+            uv_index = None
+
+        # -----------------------------
+        # 最大陣風
+        # -----------------------------
+        peak_gust_speed = None
+
+        gust_info = weather_element.get(
+            "GustInfo",
+            {}
+        )
+
+        try:
+            peak_gust_speed = float(
+                gust_info.get("PeakGustSpeed")
+            )
+        except (TypeError, ValueError):
+            peak_gust_speed = None
+
+        # -----------------------------
+        # 今日最高 / 最低溫
+        # -----------------------------
+        daily_high_temperature = None
+        daily_low_temperature = None
+
+        daily_extreme = weather_element.get(
+            "DailyExtreme",
+            {}
+        )
+
+        daily_high = (
+            daily_extreme
+            .get("DailyHigh", {})
+            .get("TemperatureInfo", {})
+        )
+
+        daily_low = (
+            daily_extreme
+            .get("DailyLow", {})
+            .get("TemperatureInfo", {})
+        )
+
+        try:
+            daily_high_temperature = float(
+                daily_high.get("AirTemperature")
+            )
+        except (TypeError, ValueError):
+            daily_high_temperature = None
+
+        try:
+            daily_low_temperature = float(
+                daily_low.get("AirTemperature")
+            )
+        except (TypeError, ValueError):
+            daily_low_temperature = None
+
+        results.append({
+            "station_id": station_id,
+            "station_name": station_name,
+            "observation_time": obs_time,
+
+            "latitude": latitude,
+            "longitude": longitude,
+            "altitude": altitude,
+
+            "city_name": city_name,
+            "township_name": township_name,
+            "city_code": city_code,
+            "township_code": township_code,
+
+            "weather": weather,
+            "precipitation": precipitation,
+            "wind_direction": wind_direction,
+            "wind_speed": wind_speed,
+            "air_temperature": air_temperature,
+            "relative_humidity": relative_humidity,
+            "air_pressure": air_pressure,
+            "uv_index": uv_index,
+            "peak_gust_speed": peak_gust_speed,
+
+            "daily_high_temperature": daily_high_temperature,
+            "daily_low_temperature": daily_low_temperature
+        })
+
+    return results
+
+
+def save_observation_data(data):
+    """
+    將 O-A0003-001 即時觀測資料儲存至 SQLite。
+    每個測站只保留最新資料。
+    """
+
+    observation_data = parse_observation_data(data)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    placeholder = get_db_placeholder()
+
+    try:
+        for item in observation_data:
+
+            cursor.execute(
+                f"""
+                INSERT INTO weather_observation (
+                    station_id,
+                    station_name,
+                    observation_time,
+                    latitude,
+                    longitude,
+                    altitude,
+                    city_name,
+                    township_name,
+                    city_code,
+                    township_code,
+                    weather,
+                    precipitation,
+                    wind_direction,
+                    wind_speed,
+                    air_temperature,
+                    relative_humidity,
+                    air_pressure,
+                    uv_index,
+                    peak_gust_speed,
+                    daily_high_temperature,
+                    daily_low_temperature,
+                    updated_at
+                )
+                VALUES (
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    {placeholder},
+                    CURRENT_TIMESTAMP
+                )
+                ON CONFLICT(station_id)
+                DO UPDATE SET
+                    station_name = excluded.station_name,
+                    observation_time = excluded.observation_time,
+                    latitude = excluded.latitude,
+                    longitude = excluded.longitude,
+                    altitude = excluded.altitude,
+                    city_name = excluded.city_name,
+                    township_name = excluded.township_name,
+                    city_code = excluded.city_code,
+                    township_code = excluded.township_code,
+                    weather = excluded.weather,
+                    precipitation = excluded.precipitation,
+                    wind_direction = excluded.wind_direction,
+                    wind_speed = excluded.wind_speed,
+                    air_temperature = excluded.air_temperature,
+                    relative_humidity = excluded.relative_humidity,
+                    air_pressure = excluded.air_pressure,
+                    uv_index = excluded.uv_index,
+                    peak_gust_speed = excluded.peak_gust_speed,
+                    daily_high_temperature = excluded.daily_high_temperature,
+                    daily_low_temperature = excluded.daily_low_temperature,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    item["station_id"],
+                    item["station_name"],
+                    item["observation_time"],
+                    item["latitude"],
+                    item["longitude"],
+                    item["altitude"],
+                    item["city_name"],
+                    item["township_name"],
+                    item["city_code"],
+                    item["township_code"],
+                    item["weather"],
+                    item["precipitation"],
+                    item["wind_direction"],
+                    item["wind_speed"],
+                    item["air_temperature"],
+                    item["relative_humidity"],
+                    item["air_pressure"],
+                    item["uv_index"],
+                    item["peak_gust_speed"],
+                    item["daily_high_temperature"],
+                    item["daily_low_temperature"]
+                )
+            )
+
+        conn.commit()
+
+        print(
+            f"O-A0003-001 測站資料儲存成功："
+            f"{len(observation_data)} 筆"
+        )
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()

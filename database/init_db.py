@@ -214,6 +214,43 @@ def init_database():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS weather_observation (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            station_id TEXT NOT NULL,
+            station_name TEXT NOT NULL,
+
+            observation_time TEXT,
+
+            latitude REAL,
+            longitude REAL,
+            altitude REAL,
+
+            city_name TEXT,
+            township_name TEXT,
+            city_code TEXT,
+            township_code TEXT,
+
+            weather TEXT,
+            precipitation REAL,
+            wind_direction REAL,
+            wind_speed REAL,
+            air_temperature REAL,
+            relative_humidity REAL,
+            air_pressure REAL,
+            uv_index REAL,
+            peak_gust_speed REAL,
+
+            daily_high_temperature REAL,
+            daily_low_temperature REAL,
+
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+            UNIQUE(station_id)
+        )
+    """)
+
     # ======================================
     # 建立 / 更新 22 個縣市
     # ======================================

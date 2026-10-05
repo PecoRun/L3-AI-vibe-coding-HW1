@@ -58,7 +58,7 @@
 
                     <div>
                         <h2>全台天氣概覽</h2>
-                        <p>明天起未來 7 天天氣</p>
+                        <p id="overview-subtitle">明天起未來 7 天天氣</p>
                     </div>
 
                     <button id="overview-toggle" class="overview-toggle" type="button">
@@ -87,6 +87,11 @@
                         </select>
 
                     </div>
+
+
+                    <!-- 載入中 / 失敗 / 無資料提示 -->
+
+                    <div id="overview-status" class="overview-status hidden" role="status"></div>
 
 
                     <!-- 天氣摘要 -->
@@ -160,7 +165,7 @@
                                 —
                             </strong>
 
-                            <span>
+                            <span id="overview-pop-unit">
                                 %
                             </span>
 
@@ -181,6 +186,11 @@
                     <!-- 一週天氣列表 -->
 
                     <div id="weekly-forecast-list" class="weekly-forecast-list"></div>
+
+
+                    <!-- 預報資料更新時間 -->
+
+                    <div id="overview-updated" class="overview-updated"></div>
 
                 </div>
 
@@ -216,123 +226,189 @@
 
 
         <!-- ============================= -->
-        <!-- 右側天氣詳細資訊 -->
+        <!-- 氣象圖層控制器 -->
         <!-- ============================= -->
 
         <aside id="weather-panel" class="weather-panel">
 
-            <!-- 尚未選擇 -->
+            <div class="layer-panel">
 
-            <div id="panel-empty" class="panel-empty">
+                <!-- 標題 -->
 
-                <div class="panel-icon">
-                    🌤️
-                </div>
+                <div class="layer-panel-header">
 
-                <h2>
-                    選擇縣市
-                </h2>
+                    <h2>
+                        氣象圖層
+                    </h2>
 
-                <p>
-                    點擊地圖上的縣市或鄉鎮標記，
-                    查看詳細天氣資訊。
-                </p>
-
-            </div>
-
-
-            <!-- 天氣詳細資訊 -->
-
-            <div id="panel-content" class="panel-content hidden">
-
-                <div class="panel-header">
-
-                    <div>
-
-                        <p id="panel-region" class="panel-region">
-                            —
-                        </p>
-
-                        <h2 id="panel-location-name">
-                            —
-                        </h2>
-
-                    </div>
+                    <p>
+                        選擇地圖顯示方式
+                    </p>
 
                 </div>
 
 
-                <!-- 目前天氣 -->
+                <!-- 圖層選項 -->
 
-                <div class="panel-current-weather">
-
-                    <div id="panel-weather-icon" class="panel-weather-icon">
-                        🌤️
-                    </div>
+                <div class="map-layer-list">
 
 
-                    <div class="panel-current-info">
+                    <!-- 氣溫 -->
 
-                        <div id="panel-weather" class="panel-weather">
-                            —
+                    <button id="map-layer-temperature" class="map-layer-btn active" type="button"
+                        data-map-mode="temperature">
+
+                        <div class="map-layer-icon">
+                            🌡️
                         </div>
 
+                        <div class="map-layer-content">
 
-                        <div class="panel-temperature">
+                            <div class="map-layer-title">
+                                氣溫
+                            </div>
 
-                            <span id="panel-max-temp">
-                                —
-                            </span>
-
-                            <span>
-                                °
-                            </span>
-
-                        </div>
-
-
-                        <div class="panel-temperature-range">
-
-                            <span>
-                                最低
-                            </span>
-
-                            <strong id="panel-min-temp">
-                                —
-                            </strong>
-
-                            <span>
-                                °C
-                            </span>
+                            <div class="map-layer-description">
+                                一般天氣地圖
+                            </div>
 
                         </div>
 
-                    </div>
+                        <div class="map-layer-check">
+                            ✓
+                        </div>
+
+                    </button>
+
+
+                    <!-- 颱風 -->
+
+                    <button id="map-layer-typhoon" class="map-layer-btn" type="button" data-map-mode="typhoon">
+
+                        <div class="map-layer-icon">
+                            🌀
+                        </div>
+
+                        <div class="map-layer-content">
+
+                            <div class="map-layer-title">
+                                颱風資訊
+                            </div>
+
+                            <div class="map-layer-description">
+                                颱風位置與路徑
+                            </div>
+
+                        </div>
+
+                        <div class="map-layer-check">
+                            ✓
+                        </div>
+
+                    </button>
+
+
+                    <!-- 風速風向 -->
+
+                    <button id="map-layer-wind" class="map-layer-btn" type="button" data-map-mode="wind">
+
+                        <div class="map-layer-icon">
+                            💨
+                        </div>
+
+                        <div class="map-layer-content">
+
+                            <div class="map-layer-title">
+                                風速風向
+                            </div>
+
+                            <div class="map-layer-description">
+                                即時風場資訊
+                            </div>
+
+                        </div>
+
+                        <div class="map-layer-check">
+                            ✓
+                        </div>
+
+                    </button>
+
 
                 </div>
 
 
-                <!-- 降雨機率 -->
+                <!-- ============================= -->
+                <!-- 即時觀測統計（O-A0003-001） -->
+                <!-- ============================= -->
 
-                <div class="panel-summary">
+                <section id="obs-stats" class="obs-stats">
 
-                    <div class="panel-summary-item">
+                    <div class="obs-stats-header">
 
-                        <span>
-                            🌧️ 降雨機率
+                        <h3>台灣即時氣象</h3>
+
+                        <span id="obs-stats-badge" class="obs-stats-badge">
+                            資料庫
                         </span>
 
-                        <strong id="panel-pop">
-                            —
-                        </strong>
+                    </div>
 
-                        <span>
-                            %
-                        </span>
+                    <p id="obs-stats-empty" class="obs-stats-empty hidden"></p>
+
+                    <dl class="obs-stats-meta">
+
+                        <div>
+                            <dt>觀測時間</dt>
+                            <dd id="obs-stats-time">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>資料來源</dt>
+                            <dd>CWA O-A0003-001</dd>
+                        </div>
+
+                        <div>
+                            <dt>本次讀取</dt>
+                            <dd id="obs-stats-read">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>測站數量</dt>
+                            <dd id="obs-stats-count">—</dd>
+                        </div>
+
+                    </dl>
+
+                    <div class="obs-stats-grid">
+
+                        <div class="obs-stat obs-stat-hot">
+                            <span class="obs-stat-label">最高溫</span>
+                            <strong id="obs-max-temp">—</strong>
+                            <span id="obs-max-temp-station" class="obs-stat-station"></span>
+                        </div>
+
+                        <div class="obs-stat obs-stat-cold">
+                            <span class="obs-stat-label">最低溫</span>
+                            <strong id="obs-min-temp">—</strong>
+                            <span id="obs-min-temp-station" class="obs-stat-station"></span>
+                        </div>
+
+                        <div class="obs-stat obs-stat-rain">
+                            <span class="obs-stat-label">最大雨量</span>
+                            <strong id="obs-max-rain">—</strong>
+                            <span id="obs-max-rain-station" class="obs-stat-station"></span>
+                        </div>
+
+                        <div class="obs-stat obs-stat-wind">
+                            <span class="obs-stat-label">最大風速</span>
+                            <strong id="obs-max-wind">—</strong>
+                            <span id="obs-max-wind-station" class="obs-stat-station"></span>
+                        </div>
 
                     </div>
 
-                </div>
+                </section>
 
             </div>
 
@@ -347,7 +423,9 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"
+        integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM"
+        crossorigin="anonymous"></script>
 
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 

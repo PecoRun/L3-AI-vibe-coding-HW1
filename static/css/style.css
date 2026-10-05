@@ -53,75 +53,18 @@ body {
 }
 
 
-.brand {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-}
-
-
-.brand-icon {
-
-    width: 44px;
-
-    height: 44px;
-
-    border-radius: 12px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 24px;
-
-    background: #f2f2f7;
-}
-
-
-.brand h1 {
-
-    font-size: 20px;
-
-    font-weight: 700;
-
-    letter-spacing: -0.5px;
-}
-
-
-.brand p {
-
-    font-size: 12px;
-
-    color: #86868b;
-
-    margin-top: 2px;
-}
-
-
 /* =========================================
    Header Actions
 ========================================= */
-
-.header-actions {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 16px;
-}
-
 
 .last-update {
 
     font-size: 13px;
 
     color: #86868b;
+
+    /* 與右側「更新資料」按鈕拉開距離 */
+    margin-right: 20px;
 }
 
 
@@ -230,50 +173,6 @@ body {
         -4px 0 24px rgba(0, 0, 0, 0.06);
 
     overflow-y: auto;
-}
-
-
-.panel-empty {
-
-    height: 100%;
-
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: center;
-
-    align-items: center;
-
-    text-align: center;
-
-    color: #86868b;
-}
-
-
-.panel-icon {
-
-    font-size: 52px;
-
-    margin-bottom: 20px;
-}
-
-
-.panel-empty h2 {
-
-    color: #1d1d1f;
-
-    font-size: 22px;
-
-    margin-bottom: 10px;
-}
-
-
-.panel-empty p {
-
-    font-size: 14px;
-
-    line-height: 1.7;
 }
 
 
@@ -404,111 +303,6 @@ body {
 }
 
 /* =========================================
-   Weather Detail Panel
-========================================= */
-
-.weather-detail {
-    display: flex;
-    flex-direction: column;
-}
-
-
-.detail-location {
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-
-.detail-weather-icon {
-    font-size: 64px;
-    margin-bottom: 8px;
-}
-
-
-.detail-weather {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-
-.detail-temp {
-    font-size: 58px;
-    font-weight: 300;
-    letter-spacing: -3px;
-    line-height: 1;
-}
-
-
-.detail-range {
-    margin-top: 10px;
-    color: #86868b;
-    font-size: 14px;
-}
-
-
-.detail-range span {
-    margin: 0 6px;
-}
-
-
-.detail-divider {
-    height: 1px;
-    background: rgba(0, 0, 0, 0.08);
-    margin: 24px 0;
-}
-
-
-.detail-info {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-
-.info-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-
-.info-item>span {
-    width: 38px;
-    height: 38px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #f2f2f7;
-    border-radius: 10px;
-
-    font-size: 18px;
-}
-
-
-.info-item div {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-
-.info-item small {
-    color: #86868b;
-    font-size: 12px;
-}
-
-
-.info-item strong {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-
-/* =========================================
    Leaflet Popup
 ========================================= */
 
@@ -516,142 +310,6 @@ body {
     min-width: 150px;
 }
 
-
-.popup-city {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-
-.popup-weather {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 6px;
-}
-
-
-.popup-temp {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-
-.popup-pop {
-    font-size: 12px;
-    color: #86868b;
-}
-
-/* ========================================
-   未來預報
-======================================== */
-
-.forecast-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 14px;
-}
-
-
-.forecast-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-
-.forecast-item {
-    display: grid;
-    grid-template-columns:
-        38px 1fr auto;
-
-    grid-template-areas:
-        "icon content temp"
-        "icon content pop";
-
-    column-gap: 10px;
-
-    padding: 12px;
-
-    background: #f5f5f7;
-
-    border-radius: 14px;
-}
-
-
-.forecast-icon {
-    grid-area: icon;
-
-    width: 38px;
-    height: 38px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 24px;
-}
-
-
-.forecast-content {
-    grid-area: content;
-
-    min-width: 0;
-}
-
-
-.forecast-time {
-    font-size: 11px;
-
-    color: #86868b;
-
-    margin-bottom: 3px;
-}
-
-
-.forecast-weather {
-    font-size: 13px;
-
-    font-weight: 600;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-
-.forecast-temp {
-    grid-area: temp;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    text-align: right;
-}
-
-
-.forecast-temp span {
-    color: #86868b;
-
-    margin: 0 2px;
-}
-
-
-.forecast-pop {
-    grid-area: pop;
-
-    font-size: 11px;
-
-    color: #86868b;
-
-    text-align: right;
-
-    margin-top: 2px;
-}
 
 /* ========================================
    Weather Marker
@@ -783,6 +441,254 @@ body {
         0 8px 30px rgba(0, 0, 0, 0.10);
 
     overflow: hidden;
+}
+
+/* 非氣溫圖層時隱藏（避免被其他 display 規則蓋過） */
+.weekly-overview.hidden {
+    display: none;
+}
+
+
+/* 概覽：載入中 / 失敗 / 無資料提示 */
+.overview-status {
+    margin-bottom: 12px;
+
+    padding: 10px 12px;
+
+    font-size: 13px;
+
+    color: #6e6e73;
+
+    background: rgba(0, 0, 0, 0.04);
+
+    border-radius: 10px;
+}
+
+.overview-status.hidden {
+    display: none;
+}
+
+.overview-status-error {
+    color: #c9302c;
+
+    background: rgba(255, 59, 48, 0.08);
+}
+
+.overview-status-retry {
+    margin-left: 8px;
+
+    padding: 3px 10px;
+
+    font-size: 12px;
+
+    color: #ffffff;
+
+    background: #007aff;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+
+/* 概覽：預報更新時間（超過 1 天沒更新時顯示警告色） */
+.overview-updated {
+    margin-top: 12px;
+
+    font-size: 11px;
+
+    color: #86868b;
+
+    text-align: right;
+}
+
+.overview-updated:empty {
+    display: none;
+}
+
+.overview-updated.stale {
+    color: #b45309;
+
+    font-weight: 600;
+}
+
+
+/* ==========================================
+   即時觀測統計（右側面板）
+   ========================================== */
+
+/* 圖層按鈕與統計卡之間至少留 20px
+   （面板太矮、auto 空間被吃掉時也不會貼在一起） */
+.layer-panel .map-layer-list {
+    margin-bottom: 20px;
+}
+
+/* 統計卡：貼在右側面板最下方，用底色 / 邊框 / 陰影與上方的圖層按鈕區分 */
+.obs-stats {
+    margin-top: auto;
+
+    padding: 16px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0, 122, 255, 0.08) 0%,
+            rgba(0, 122, 255, 0.03) 100%
+        );
+
+    border: 1px solid rgba(0, 122, 255, 0.16);
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 4px 14px rgba(0, 122, 255, 0.08);
+}
+
+.obs-stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+
+    border-bottom: 1px solid rgba(0, 122, 255, 0.14);
+}
+
+.obs-stats-header h3 {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    color: #1d1d1f;
+}
+
+.obs-stats-badge {
+    padding: 2px 10px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    color: #6e6e73;
+
+    background: rgba(255, 255, 255, 0.9);
+
+    border-radius: 999px;
+}
+
+/* 剛呼叫過 CWA API 時 */
+.obs-stats-badge.is-live {
+    color: #ffffff;
+
+    background: #34c759;
+}
+
+/* 還沒有任何觀測資料時的提示 */
+.obs-stats-empty {
+    margin: 0 0 12px;
+
+    padding: 8px 10px;
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    color: #b45309;
+
+    background: rgba(255, 159, 10, 0.12);
+
+    border-radius: 10px;
+}
+
+.obs-stats-empty.hidden {
+    display: none;
+}
+
+.obs-stats-meta {
+    margin: 0 0 14px;
+
+    font-size: 12px;
+}
+
+.obs-stats-meta > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 3px 0;
+}
+
+.obs-stats-meta dt {
+    flex-shrink: 0;
+
+    color: #86868b;
+}
+
+.obs-stats-meta dd {
+    margin: 0;
+
+    text-align: right;
+
+    color: #1d1d1f;
+}
+
+.obs-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.obs-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    padding: 10px 12px;
+
+    background: rgba(255, 255, 255, 0.9);
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.obs-stat-label {
+    font-size: 12px;
+
+    color: #86868b;
+}
+
+.obs-stat strong {
+    font-size: 20px;
+    font-weight: 700;
+
+    letter-spacing: -0.3px;
+}
+
+.obs-stat-hot strong {
+    color: #ff3b30;
+}
+
+.obs-stat-cold strong {
+    color: #007aff;
+}
+
+.obs-stat-rain strong {
+    color: #0a84ff;
+}
+
+.obs-stat-wind strong {
+    color: #30b0c7;
+}
+
+.obs-stat-station {
+    min-height: 1.2em;
+
+    font-size: 12px;
+
+    color: #6e6e73;
 }
 
 
@@ -1088,6 +994,988 @@ body {
     text-align: right;
 
     display: none;
+}
+
+/* =========================================
+   氣象圖層控制器
+========================================= */
+
+.layer-panel {
+
+    display: flex;
+
+    flex-direction: column;
+
+    height: 100%;
+
+}
+
+
+/* =========================================
+   圖層標題
+========================================= */
+
+.layer-panel-header {
+
+    margin-bottom: 20px;
+}
+
+
+.layer-panel-header h2 {
+
+    margin: 0;
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    letter-spacing: -0.5px;
+
+    color: #1d1d1f;
+}
+
+
+.layer-panel-header p {
+
+    margin-top: 6px;
+
+    font-size: 13px;
+
+    color: #86868b;
+}
+
+
+/* =========================================
+   圖層列表
+========================================= */
+
+.map-layer-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+/* =========================================
+   圖層按鈕
+========================================= */
+
+.map-layer-btn {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    border: 1px solid rgba(0, 0, 0, 0.06);
+
+    border-radius: 16px;
+
+    background: #f5f5f7;
+
+    color: #1d1d1f;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.map-layer-btn:hover {
+
+    background: #eeeeF2;
+
+    transform: translateY(-1px);
+}
+
+
+.map-layer-btn:active {
+
+    transform: scale(0.98);
+}
+
+
+/* =========================================
+   Icon
+========================================= */
+
+.map-layer-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    font-size: 21px;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =========================================
+   文字
+========================================= */
+
+.map-layer-content {
+
+    flex: 1;
+
+    min-width: 0;
+}
+
+
+.map-layer-title {
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    line-height: 1.3;
+}
+
+
+.map-layer-description {
+
+    margin-top: 3px;
+
+    font-size: 11px;
+
+    color: #86868b;
+
+    line-height: 1.3;
+}
+
+
+/* =========================================
+   勾選
+========================================= */
+
+.map-layer-check {
+
+    width: 22px;
+
+    height: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #007aff;
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    opacity: 0;
+
+    transform: scale(0.7);
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+/* =========================================
+   目前選中的圖層
+========================================= */
+
+.map-layer-btn.active {
+
+    background: rgba(0, 122, 255, 0.08);
+
+    border-color: rgba(0, 122, 255, 0.25);
+
+    box-shadow:
+        0 4px 14px rgba(0, 122, 255, 0.08);
+}
+
+
+.map-layer-btn.active .map-layer-icon {
+
+    background: #ffffff;
+
+    box-shadow:
+        0 3px 10px rgba(0, 122, 255, 0.12);
+}
+
+
+.map-layer-btn.active .map-layer-title {
+
+    color: #007aff;
+}
+
+
+.map-layer-btn.active .map-layer-check {
+
+    opacity: 1;
+
+    transform: scale(1);
+}
+
+
+/* =========================================
+   Mobile
+========================================= */
+
+@media (max-width: 900px) {
+
+    .layer-panel {
+
+        height: auto;
+    }
+
+    .map-layer-list {
+
+        gap: 8px;
+    }
+
+    .map-layer-btn {
+
+        padding: 12px;
+    }
+
+    .map-layer-icon {
+
+        width: 38px;
+
+        height: 38px;
+
+        font-size: 19px;
+    }
+
+}
+
+/* =========================================
+   地圖模式提示
+========================================= */
+
+.map-mode-message {
+
+    position: absolute;
+
+    left: 50%;
+
+    bottom: 30px;
+
+    transform: translateX(-50%);
+
+    z-index: 1200;
+
+    min-width: 220px;
+
+    padding: 14px 18px;
+
+    background: rgba(255, 255, 255, 0.92);
+
+    backdrop-filter: blur(18px);
+
+    -webkit-backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.14);
+
+    text-align: center;
+
+    pointer-events: none;
+}
+
+
+.map-mode-message-title {
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    color: #1d1d1f;
+
+    margin-bottom: 4px;
+}
+
+
+.map-mode-message-description {
+
+    font-size: 12px;
+
+    color: #86868b;
+}
+
+/* =========================================
+   鄉鎮天氣浮動面板
+========================================= */
+
+.township-weather-popup {
+
+    position: absolute;
+
+    z-index: 1100;
+
+    width: 250px;
+
+    padding: 18px;
+
+    background: rgba(255, 255, 255, 0.94);
+
+    backdrop-filter: blur(20px);
+
+    -webkit-backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.16);
+
+    pointer-events: auto;
+}
+
+
+/* =========================================
+   標題
+========================================= */
+
+.township-popup-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+
+.township-popup-location {
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    color: #1d1d1f;
+}
+
+
+.township-popup-city {
+
+    margin-top: 3px;
+
+    font-size: 11px;
+
+    color: #86868b;
+}
+
+
+/* =========================================
+   關閉按鈕
+========================================= */
+
+.township-popup-close {
+
+    width: 26px;
+
+    height: 26px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #f2f2f7;
+
+    color: #6e6e73;
+
+    font-size: 16px;
+
+    cursor: pointer;
+}
+
+
+.township-popup-close:hover {
+
+    background: #e5e5ea;
+
+    color: #1d1d1f;
+}
+
+
+/* =========================================
+   目前天氣
+========================================= */
+
+.township-popup-current {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px;
+
+    background: #f5f5f7;
+
+    border-radius: 14px;
+
+    margin-bottom: 12px;
+}
+
+
+.township-popup-icon {
+
+    font-size: 34px;
+
+    line-height: 1;
+}
+
+
+.township-popup-weather {
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #1d1d1f;
+}
+
+
+.township-popup-temp {
+
+    margin-top: 3px;
+
+    font-size: 24px;
+
+    font-weight: 500;
+
+    color: #1d1d1f;
+}
+
+
+/* =========================================
+   資訊
+========================================= */
+
+.township-popup-info {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+}
+
+
+.township-popup-info-item {
+
+    padding: 10px;
+
+    background: #f5f5f7;
+
+    border-radius: 12px;
+}
+
+
+.township-popup-info-label {
+
+    display: block;
+
+    margin-bottom: 3px;
+
+    font-size: 10px;
+
+    color: #86868b;
+}
+
+
+.township-popup-info-value {
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #1d1d1f;
+}
+
+/* ==========================================
+   風速風向 Marker
+   ========================================== */
+
+.wind-marker-wrapper {
+    background: transparent;
+    border: none;
+}
+
+
+.wind-marker {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.94);
+
+    border: 1px solid rgba(0, 122, 255, 0.18);
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.14);
+
+    font-size: 20px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    transform-origin: center center;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.wind-marker {
+    border-width: 2px;
+}
+
+
+.wind-arrow {
+    display: block;
+
+    transform-origin: center center;
+}
+
+
+.wind-legend {
+    padding: 10px 12px;
+
+    font-size: 12px;
+
+    color: #1d1d1f;
+
+    background: rgba(255, 255, 255, 0.94);
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.14);
+}
+
+
+.wind-legend-title {
+    margin-bottom: 6px;
+
+    font-weight: 700;
+}
+
+
+.wind-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    line-height: 1.7;
+}
+
+
+.wind-legend-color {
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+}
+
+
+.wind-legend-note {
+    margin-top: 6px;
+
+    font-size: 11px;
+
+    color: #6e6e73;
+}
+
+
+.wind-popup {
+    line-height: 1.6;
+}
+
+
+/* ==========================================
+   颱風資訊
+   ========================================== */
+
+.typhoon-panel {
+    position: absolute;
+
+    top: 20px;
+    left: 20px;
+
+    width: 320px;
+
+    max-height: calc(100vh - 40px);
+
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+
+    background: rgba(255, 255, 255, 0.94);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(255, 255, 255, 0.7);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.10);
+
+    overflow: hidden;
+}
+
+
+.typhoon-panel-header {
+    padding: 18px 20px 12px;
+}
+
+
+.typhoon-panel-header h2 {
+    margin: 0;
+
+    font-size: 18px;
+}
+
+
+.typhoon-panel-header p {
+    margin: 4px 0 0;
+
+    font-size: 12px;
+
+    color: #6e6e73;
+}
+
+
+.typhoon-panel-body {
+    padding: 0 20px 18px;
+
+    overflow-y: auto;
+}
+
+
+.typhoon-card {
+    padding: 12px;
+
+    margin-bottom: 12px;
+
+    background: rgba(0, 0, 0, 0.03);
+
+    border-radius: 12px;
+}
+
+
+.typhoon-card-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+
+.typhoon-badge {
+    padding: 2px 8px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    color: #ffffff;
+
+    border-radius: 999px;
+}
+
+
+.typhoon-name {
+    font-size: 17px;
+}
+
+
+.typhoon-name-en {
+    font-size: 12px;
+
+    color: #6e6e73;
+}
+
+
+.typhoon-number {
+    margin: 2px 0 8px;
+
+    font-size: 12px;
+
+    color: #6e6e73;
+}
+
+
+.typhoon-stat {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 3px 0;
+
+    font-size: 13px;
+}
+
+
+.typhoon-stat span {
+    color: #6e6e73;
+}
+
+
+.typhoon-moving {
+    margin-top: 8px;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+.typhoon-time {
+    margin-top: 8px;
+
+    font-size: 11px;
+
+    color: #6e6e73;
+}
+
+
+.typhoon-empty {
+    padding: 18px 0;
+
+    text-align: center;
+
+    color: #6e6e73;
+}
+
+
+.typhoon-actions {
+    display: flex;
+    gap: 8px;
+}
+
+
+.typhoon-actions button {
+    flex: 1;
+
+    padding: 8px 10px;
+
+    font-size: 13px;
+
+    color: #1d1d1f;
+
+    background: rgba(0, 0, 0, 0.05);
+
+    border: none;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+}
+
+
+.typhoon-actions button:hover {
+    background: rgba(0, 0, 0, 0.09);
+}
+
+
+.typhoon-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+
+    margin-top: 12px;
+
+    font-size: 11px;
+}
+
+
+.typhoon-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+
+.typhoon-legend-dot {
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+}
+
+
+.typhoon-legend-note {
+    margin-top: 6px;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    color: #6e6e73;
+}
+
+
+.typhoon-marker-wrapper {
+    background: transparent;
+    border: none;
+}
+
+
+.typhoon-marker {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 22px;
+
+    background: rgba(255, 255, 255, 0.94);
+
+    border: 3px solid #af52de;
+    border-radius: 50%;
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+
+.typhoon-label {
+    font-weight: 700;
+}
+
+
+.typhoon-popup {
+    line-height: 1.6;
+}
+
+
+.typhoon-popup-time {
+    font-size: 12px;
+
+    color: #6e6e73;
+}
+
+
+@media (max-width: 768px) {
+
+    .typhoon-panel {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+
+        width: auto;
+
+        max-height: 45vh;
+
+        border-radius: 16px;
+    }
+
+    .typhoon-panel-header {
+        padding: 14px 16px 10px;
+    }
+
+    .typhoon-panel-body {
+        padding: 0 16px 14px;
+    }
+}
+
+
+.wind-popup-place,
+.wind-popup-time {
+    font-size: 12px;
+
+    color: #6e6e73;
+}
+
+
+.wind-speed {
+    margin-top: 3px;
+
+    white-space: nowrap;
+
+    text-align: center;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    color: #1d1d1f;
+
+    background: rgba(255, 255, 255, 0.9);
+
+    padding: 2px 5px;
+
+    border-radius: 6px;
+
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.wind-marker-wrapper:hover .wind-marker {
+    box-shadow:
+        0 4px 14px rgba(0, 122, 255, 0.22);
+}
+
+.wind-marker-wrapper:hover .wind-speed {
+    background: #ffffff;
 }
 
 @media (max-width: 768px) {

@@ -1,8 +1,11 @@
 from flask import Flask, jsonify, render_template
-import os
 from database.init_db import init_database
 from database.db import get_db_connection, get_db_placeholder
-from services.weather_service import refresh_weather_data
+from services.weather_service import (
+    get_taiwan_today,
+    refresh_weather_data
+)
+from services.cwa_api import fetch_typhoon_data
 
 
 app = Flask(__name__)
@@ -32,16 +35,103 @@ def refresh_weather():
 
     except Exception as error:
 
+        # requests 的錯誤訊息會帶完整網址（含 API Key），
+        # 不回傳給瀏覽器，log 也只記錄錯誤類型
+        app.logger.error(
+            "更新天氣資料失敗：%s",
+            type(error).__name__
+        )
+
         return jsonify({
             "success": False,
-            "message": str(error)
+            "message": "更新天氣資料失敗"
         }), 500
 
+
+# ==========================================
+# 颱風
+# CWA W-C0034-005 → API（不寫入資料庫）
+# ==========================================
+@app.route("/api/typhoon", methods=["GET"])
+def get_typhoon():
+
+    try:
+        typhoons = fetch_typhoon_data()
+
+        return jsonify({
+            "success": True,
+            "count": len(typhoons),
+            "data": typhoons
+        })
+
+    except Exception as error:
+
+        # requests 的錯誤訊息會帶完整網址（含 API Key），
+        # 不回傳給瀏覽器，log 也只記錄錯誤類型
+        app.logger.error(
+            "取得颱風資料失敗：%s",
+            type(error).__name__
+        )
+
+        return jsonify({
+            "success": False,
+            "message": "取得颱風資料失敗"
+        }), 502
+
+
+@app.route("/api/weather/observation", methods=["GET"])
+def get_weather_observation():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            station_id,
+            station_name,
+            observation_time,
+            latitude,
+            longitude,
+            altitude,
+            city_name,
+            township_name,
+            city_code,
+            township_code,
+            weather,
+            precipitation,
+            wind_direction,
+            wind_speed,
+            air_temperature,
+            relative_humidity,
+            air_pressure,
+            uv_index,
+            peak_gust_speed,
+            daily_high_temperature,
+            daily_low_temperature,
+            updated_at
+        FROM weather_observation
+        ORDER BY city_name, station_name
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    observation_data = [
+        dict(row)
+        for row in rows
+    ]
+
+    return jsonify({
+        "success": True,
+        "count": len(observation_data),
+        "data": observation_data
+    })
 
 # ==========================================
 # 取得天氣資料
 # SQLite → API
 # ==========================================
+
+
 @app.route("/api/weather", methods=["GET"])
 def get_weather():
 
@@ -188,10 +278,14 @@ def get_township_weather(
     WHERE
         t.city_name = {placeholder}
         AND t.township_name = {placeholder}
+        AND w.forecast_date >= {placeholder}
     ORDER BY w.forecast_date
     """, (
         city_name,
         township_name,
+        # 只回傳今天（臺灣時間）以後的預報，
+        # 不論資料庫裡有沒有清掉過期日期
+        get_taiwan_today(),
     ))
 
     rows = cursor.fetchall()

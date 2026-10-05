@@ -22,7 +22,8 @@ def main():
         "weather_daily_forecast",
         "townships",
         "township_weather_forecast",
-        "update_log"
+        "update_log",
+        "weather_observation"
     ]
 
     print("==========================================")
