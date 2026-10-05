@@ -1,0 +1,49 @@
+name: Update forecast
+
+# 定時把 CWA 的縣市 / 鄉鎮預報更新到 Neon（正式站資料庫）。
+# 做的事等同在本機執行：python update_forecast.py --neon
+#
+# 需要在 GitHub 的 Settings → Secrets and variables → Actions 設定兩個 Repository secrets：
+#   CWA_API_KEY    中央氣象署的授權碼
+#   DATABASE_URL   Neon 的連線字串
+
+on:
+  schedule:
+    # 每 3 小時一次（UTC）。刻意避開整點：整點時 GitHub 的排程比較擁擠、容易延遲。
+    - cron: "17 */3 * * *"
+
+  # 也可以在 GitHub 的 Actions 頁面手動執行（Run workflow）
+  workflow_dispatch:
+
+# 只需要讀取程式碼
+permissions:
+  contents: read
+
+# 同一時間只跑一個，避免兩次更新同時寫資料庫
+concurrency:
+  group: update-forecast
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Update forecast in Neon
+        env:
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python update_forecast.py --neon

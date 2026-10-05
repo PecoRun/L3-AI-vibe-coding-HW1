@@ -73,9 +73,9 @@ Leaflet + OpenStreetMap + Chart.js
 | 資料集 | 資料內容 | 用途 | 如何更新 |
 |---|---|---|---|
 | `O-A0003-001` | 全臺即時觀測（約 360 個測站） | 風速風向圖層、統計卡、縣市標記的天氣與溫度（優先採用該縣市的即時觀測，沒有時才用預報） | **網頁「更新資料」按鈕** |
-| `F-C0032-001` | 一般縣市 3 天天氣預報 | 縣市標記的預報（點開標記可看） | `update_forecast.py` |
-| `F-D0047-091` | 臺灣未來 1 週天氣預報 | 全台天氣概覽（7 天溫度圖、列表） | `update_forecast.py` |
-| `F-D0047-093` | 鄉鎮天氣預報（22 縣市、368 鄉鎮） | 鄉鎮天氣浮動面板 | `update_forecast.py` |
+| `F-C0032-001` | 一般縣市 3 天天氣預報 | 縣市標記的預報（點開標記可看） | **GitHub Actions 每 3 小時**（或手動執行 `update_forecast.py`） |
+| `F-D0047-091` | 臺灣未來 1 週天氣預報 | 全台天氣概覽（7 天溫度圖、列表） | **GitHub Actions 每 3 小時**（或手動執行 `update_forecast.py`） |
+| `F-D0047-093` | 鄉鎮天氣預報（22 縣市、368 鄉鎮） | 鄉鎮天氣浮動面板 | **GitHub Actions 每 3 小時**（或手動執行 `update_forecast.py`） |
 | `W-C0034-005` | 熱帶氣旋（颱風）路徑與預報 | 颱風資訊圖層 | **不存資料庫**，每次由 `/api/typhoon` 即時呼叫 |
 
 ### 資料處理重點
@@ -192,6 +192,10 @@ taiwan-weather-map/
 ├── README.md
 ├── image.png
 │
+├── .github/
+│   └── workflows/
+│       └── update-forecast.yml 每 3 小時自動更新預報到 Neon
+│
 ├── api/
 │   └── index.py                from app import app（備用入口，目前 vercel.json 直接使用 app.py）
 │
@@ -282,12 +286,40 @@ DATABASE_URL=YOUR_DATABASE_URL
 DATABASE_BACKEND=postgres
 ```
 
+### 預報自動更新（GitHub Actions）
+
+網頁上的「更新資料」按鈕只更新即時觀測（`O-A0003-001`）。縣市 3 天 / 7 天預報與鄉鎮預報由 [`.github/workflows/update-forecast.yml`](.github/workflows/update-forecast.yml) 定時更新：在 GitHub 的機器上執行 `python update_forecast.py --neon`，把預報寫入 Neon。
+
+- **執行時間：** 每 3 小時一次（臺灣時間 02:17、05:17、08:17、11:17、14:17、17:17、20:17、23:17）。刻意避開整點，因為整點時 GitHub 的排程比較擁擠；實際執行可能延遲數分鐘到數十分鐘。
+- **手動執行：** 儲存庫的 **Actions** 頁籤 → 選 *Update forecast* → **Run workflow**。
+- **失敗通知：** 任何項目更新失敗，該次執行會顯示失敗，GitHub 會寄信通知。
+- **預報過期提示：** 超過 1 天沒更新時，概覽面板底部的「預報更新於 …」會變成警告色。
+
+第一次使用需要設定兩個 Secrets：儲存庫 **Settings → Secrets and variables → Actions → New repository secret**
+
+| 名稱 | 內容 |
+|---|---|
+| `CWA_API_KEY` | 中央氣象署的授權碼（同 `.env`） |
+| `DATABASE_URL` | Neon 的連線字串（同 `.env`） |
+
+> Secrets 只在執行時傳給腳本，不會出現在紀錄裡。工作流程只由排程與手動觸發，不會被外部的 Pull Request 觸發，fork 的程式碼拿不到 Secrets。
+>
+> 公開儲存庫如果超過 60 天沒有任何活動（提交、Issue 等），GitHub 會自動停用排程工作流程，需要到 Actions 頁籤手動重新啟用。
+
+也可以隨時在本機手動更新：
+
+```bash
+python update_forecast.py                  # 更新本機 SQLite
+python update_forecast.py --neon           # 更新 Neon（會寫入正式資料庫）
+python update_forecast.py --skip-township  # 略過鄉鎮預報（比較快）
+```
+
 ### 部署檢查清單
 
 1. `python database/init_neon_db.py` — 確認 Neon 有 7 張資料表（含 `weather_observation`）。
-2. `python update_forecast.py --neon` — 更新正式站的預報資料。
+2. 在 GitHub 設定 `CWA_API_KEY`、`DATABASE_URL` 兩個 Secrets（見上一節），並到 Actions 頁籤手動執行一次 *Update forecast*，確認顯示成功。
 3. 部署後在網站按一次「更新資料」，寫入即時觀測資料。
-4. 確認統計卡有數字、頂部「最後更新」有時間、風速風向圖層有箭頭。
+4. 確認統計卡有數字、頂部「最後更新」有時間、風速風向圖層有箭頭，概覽底部的「預報更新於 …」是剛剛的時間。
 
 ---
 
